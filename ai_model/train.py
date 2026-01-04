@@ -66,9 +66,9 @@ FEATURES = [
 ]
 
 X = df[FEATURES]
-y_text = df[TARGET] # Dữ liệu nhãn đang là dạng chữ (SAFE, AIR_POLLUTED...)
+y_text = df[TARGET] # du lieu nhan la dang chu
 
-# Mã hóa nhãn (Chuyển chữ thành số để AI học)
+# chuyen nhan thanh so de hoc
 le = LabelEncoder()
 y = le.fit_transform(y_text)
 class_names = list(le.classes_) # Lưu lại danh sách tên thật để dùng sau này

@@ -15,7 +15,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), '../ai_model')
 
 BLYNK_TOKEN = "-JtyN9CYCudclKkkfClXNl-i3hQNEGpA"
 BLYNK_URL = f"https://blynk.cloud/external/api/getAll?token={BLYNK_TOKEN}"
-FETCH_INTERVAL = 2.0  # giây
+FETCH_INTERVAL = 1
 
 
 latest_data_store = {
