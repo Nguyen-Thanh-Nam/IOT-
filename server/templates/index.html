@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IoT Pollution Monitor</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        min-height: 100vh;
+        color: #fff;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .header p {
+        opacity: 0.7;
+        font-size: 14px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* ALERT BANNER STYLE */
+      .alert-banner {
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .alert-banner i {
+        font-size: 40px;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .alert-banner .confidence-text {
+        font-size: 16px;
+        font-weight: normal;
+        opacity: 0.9;
+        margin-top: 5px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 25px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .card-header i {
+        font-size: 24px;
+        margin-right: 10px;
+      }
+
+      .card-header h3 {
+        font-size: 16px;
+        opacity: 0.8;
+        font-weight: 600;
+      }
+
+      .card-value {
+        font-size: 42px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .card-unit {
+        font-size: 14px;
+        opacity: 0.6;
+      }
+
+      .card-status {
+        margin-top: 15px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: inline-block;
+        font-weight: bold;
+      }
+
+      .status-good {
+        background: rgba(39, 174, 96, 0.2);
+        color: #2ecc71;
+        border: 1px solid #2ecc71;
+      }
+      .status-moderate {
+        background: rgba(243, 156, 18, 0.2);
+        color: #f1c40f;
+        border: 1px solid #f1c40f;
+      }
+      .status-bad {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+      }
+
+      .chart-container {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .chart-container h3 {
+        margin-bottom: 20px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+      }
+
+      .chart-container h3 i {
+        margin-right: 10px;
+      }
+
+      /* PROBABILITY CARDS */
+      .prob-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 992px) {
+        .prob-container {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .prob-container {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .prob-card {
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+      }
+
+      .prob-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .prob-label {
+        font-size: 11px;
+        opacity: 0.7;
+        text-transform: uppercase;
+      }
+
+      .time-display {
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.6;
+        margin-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      /* BORDER COLORS FOR SENSOR CARDS */
+      #mq135-card {
+        border-left: 4px solid #3498db;
+      }
+      #mq7-card {
+        border-left: 4px solid #e74c3c;
+      }
+      #pm25-card {
+        border-left: 4px solid #9b59b6;
+      }
+      #sound-card {
+        border-left: 4px solid #1abc9c;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        }
+        70% {
+          transform: scale(1.02);
+          box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+        }
+      }
+
+      .alert-danger-anim {
+        animation: pulse 2s infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1><i class="fas fa-robot"></i> IoT Pollution Monitor</h1>
+      <p>Hệ thống giám sát và cảnh báo ô nhiễm môi trường sử dụng AI</p>
+    </div>
+
+    <div class="container">
+      <div id="alert-banner" class="alert-banner" style="background: #27ae60">
+        <i id="alert-icon" class="fas fa-spinner fa-spin"></i>
+        <div id="alert-text">ĐANG KẾT NỐI...</div>
+        <div id="alert-conf" class="confidence-text">Độ tin cậy: --%</div>
+      </div>
+
+      <div class="grid">
+        <div class="card" id="mq135-card">
+          <div class="card-header">
+            <i class="fas fa-wind" style="color: #3498db"></i>
+            <h3>MQ135 - Chất lượng KK</h3>
+          </div>
+          <div class="card-value" id="mq135-value">--</div>
+          <div class="card-unit">ppm</div>
+          <div class="card-status status-good" id="mq135-status">--</div>
+        </div>
+
+        <div class="card" id="mq7-card">
+          <div class="card-header">
+            <i class="fas fa-burn" style="color: #e74c3c"></i>
+            <h3>MQ7 - Khí CO</h3>
+          </div>
+          <div class="card-value" id="mq7-value">--</div>
+          <div class="card-unit">ppm</div>
+          <div class="card-status status-good" id="mq7-status">--</div>
+        </div>
+
+        <div class="card" id="pm25-card">
+          <div class="card-header">
+            <i class="fas fa-smog" style="color: #9b59b6"></i>
+            <h3>PM2.5 - Bụi Mịn</h3>
+          </div>
+          <div class="card-value" id="pm25-value">--</div>
+          <div class="card-unit">µg/m³</div>
+          <div class="card-status status-good" id="pm25-status">--</div>
+        </div>
+
+        <div class="card" id="sound-card">
+          <div class="card-header">
+            <i class="fas fa-volume-up" style="color: #1abc9c"></i>
+            <h3>Sound - Tiếng ồn</h3>
+          </div>
+          <div class="card-value" id="sound-value">--</div>
+          <div class="card-unit">dB</div>
+          <div class="card-status status-good" id="sound-status">--</div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h3><i class="fas fa-brain"></i> AI Phân Tích Xác Suất</h3>
+        <div class="prob-container">
+          <div class="prob-card" style="border-bottom: 3px solid #2ecc71">
+            <div class="prob-value" id="prob-very-clean" style="color: #2ecc71">
+              0%
+            </div>
+            <div class="prob-label">Rất Trong Lành</div>
+          </div>
+          <div class="prob-card" style="border-bottom: 3px solid #27ae60">
+            <div class="prob-value" id="prob-safe" style="color: #27ae60">
+              0%
+            </div>
+            <div class="prob-label">AN TOÀN</div>
+          </div>
+          <div class="prob-card" style="border-bottom: 3px solid #e67e22">
+            <div
+              class="prob-value"
+              id="prob-air-polluted"
+              style="color: #e67e22"
+            >
+              0%
+            </div>
+            <div class="prob-label">Ô NHIỄM KHÔNG KHÍ</div>
+          </div>
+          <div class="prob-card" style="border-bottom: 3px solid #d35400">
+            <div
+              class="prob-value"
+              id="prob-noise-polluted"
+              style="color: #d35400"
+            >
+              0%
+            </div>
+            <div class="prob-label">Ô NHIỄM TIẾNG ỒN</div>
+          </div>
+          <div class="prob-card" style="border-bottom: 3px solid #c0392b">
+            <div
+              class="prob-value"
+              id="prob-both-polluted"
+              style="color: #c0392b"
+            >
+              0%
+            </div>
+            <div class="prob-label">Ô NHIỄM NẶNG</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h3><i class="fas fa-chart-line"></i> Biểu Đồ Thời Gian Thực</h3>
+        <div style="position: relative; height: 350px">
+          <canvas id="mainChart"></canvas>
+        </div>
+      </div>
+
+      <div class="time-display">
+        Cập nhật lần cuối: <span id="last-update">--:--:--</span>
+      </div>
+    </div>
+
+    <script>
+      // --- 1. CẤU HÌNH BIỂU ĐỒ (CHART.JS) ---
+      const ctx = document.getElementById("mainChart").getContext("2d");
+      const chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Bụi (PM2.5)",
+              data: [],
+              borderColor: "#9b59b6",
+              backgroundColor: "rgba(155, 89, 182, 0.1)",
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 0,
+            },
+            {
+              label: "Âm thanh (dB)",
+              data: [],
+              borderColor: "#1abc9c",
+              backgroundColor: "rgba(26, 188, 156, 0.1)",
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 0,
+            },
+            {
+              label: "Khí (MQ135)",
+              data: [],
+              borderColor: "#3498db",
+              backgroundColor: "rgba(52, 152, 219, 0.1)",
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: "index" },
+          animation: { duration: 0 }, // Tắt hiệu ứng để mượt hơn
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(255,255,255,0.1)" },
+              ticks: { color: "#ccc" },
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: "#ccc", maxTicksLimit: 8 },
+            },
+          },
+          plugins: {
+            legend: { labels: { color: "#fff" } },
+          },
+        },
+      });
+
+      // --- 2. HÀM ĐÁNH GIÁ TRẠNG THÁI CẢM BIẾN ---
+      function getStatus(type, value) {
+        if (type === "mq135") {
+          if (value < 60) return { text: "Tốt", class: "status-good" };
+          if (value < 150)
+            return { text: "Cảnh báo", class: "status-moderate" };
+          return { text: "Xấu", class: "status-bad" };
+        }
+        if (type === "mq7") {
+          if (value < 5) return { text: "An toàn", class: "status-good" };
+          if (value < 10) return { text: "Chú ý", class: "status-moderate" };
+          return { text: "Nguy hiểm", class: "status-bad" };
+        }
+        if (type === "pm25") {
+          if (value < 50) return { text: "Trong lành", class: "status-good" };
+          if (value < 100)
+            return { text: "Bụi nhiều", class: "status-moderate" };
+          return { text: "Ô nhiễm", class: "status-bad" };
+        }
+        if (type === "sound") {
+          if (value < 60) return { text: "Yên tĩnh", class: "status-good" };
+          if (value < 75) return { text: "Ồn ào", class: "status-moderate" };
+          return { text: "Quá ồn", class: "status-bad" };
+        }
+      }
+
+      // --- 3. HÀM CẬP NHẬT GIAO DIỆN ---
+      function updateUI(data) {
+        if (!data.raw_sensors) return;
+
+        const sensors = data.raw_sensors;
+
+        // Update số liệu cảm biến
+        document.getElementById("mq135-value").textContent =
+          sensors.mq135.toFixed(1);
+        document.getElementById("mq7-value").textContent =
+          sensors.mq7.toFixed(2);
+        document.getElementById("pm25-value").textContent =
+          sensors.pm25.toFixed(1);
+        document.getElementById("sound-value").textContent =
+          sensors.sound.toFixed(1);
+
+        // Update trạng thái từng cảm biến
+        ["mq135", "mq7", "pm25", "sound"].forEach((type) => {
+          const status = getStatus(type, sensors[type]);
+          const el = document.getElementById(type + "-status");
+          el.textContent = status.text;
+          el.className = "card-status " + status.class;
+        });
+
+        // Update Banner AI
+        const banner = document.getElementById("alert-banner");
+        const icon = document.getElementById("alert-icon");
+
+        banner.style.background = data.color;
+        document.getElementById("alert-text").textContent = data.display_text;
+        document.getElementById(
+          "alert-conf"
+        ).textContent = `Độ tin cậy: ${data.confidence}%`;
+        icon.className = `fas fa-${data.icon}`;
+
+        // Hiệu ứng nhấp nháy nếu nguy hiểm (Level 3)
+        if (data.alert_level === 3) {
+          banner.classList.add("alert-danger-anim");
+        } else {
+          banner.classList.remove("alert-danger-anim");
+        }
+
+        // Update Thời gian
+        const now = new Date();
+        document.getElementById("last-update").textContent =
+          now.toLocaleTimeString();
+
+        // Update Biểu đồ
+        const maxPoints = 20;
+        if (chart.data.labels.length > maxPoints) {
+          chart.data.labels.shift();
+          chart.data.datasets.forEach((d) => d.data.shift());
+        }
+        chart.data.labels.push(now.toLocaleTimeString());
+        chart.data.datasets[0].data.push(sensors.pm25);
+        chart.data.datasets[1].data.push(sensors.sound);
+        chart.data.datasets[2].data.push(sensors.mq135);
+        chart.update("none"); // Update không animation
+      }
+
+      // --- 4. HÀM LẤY DỮ LIỆU ---
+      async function fetchData() {
+        try {
+          const response = await fetch("/api/latest");
+          const data = await response.json();
+
+          if (data.error) {
+            console.error("API Error:", data.error);
+            return;
+          }
+          updateUI(data);
+        } catch (error) {
+          console.error("Fetch error:", error);
+        }
+      }
+
+      // Chạy ngay và lặp lại mỗi 2 giây
+      fetchData();
+      setInterval(fetchData, 2000);
+    </script>
+  </body>
+</html>
