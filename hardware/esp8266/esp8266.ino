@@ -109,6 +109,13 @@ void loop() {
         if (alert >= 0) {
           sendAlertToArduino(alert);
           Blynk.virtualWrite(V4, alert); // (Optional) Hien thi muc do len Blynk
+
+          if (alert >= 3) { 
+                Blynk.logEvent("canh_bao", "CẢNH BÁO: Môi trường đang ô nhiễm nguy hiểm!");
+                Serial.println(">> Da gui thong bao Blynk!");
+ 
+
+          }
         }
         lastPredictTime = millis();
       }

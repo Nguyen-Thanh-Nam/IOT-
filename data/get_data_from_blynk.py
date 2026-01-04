@@ -7,9 +7,9 @@ from datetime import datetime
 BLYNK_TOKEN = "-JtyN9CYCudclKkkfClXNl-i3hQNEGpA"
 BLYNK_URL = f"https://blynk.cloud/external/api/getAll?token={BLYNK_TOKEN}"
 
-FILE_NAME = "dataset_AIR_POLLUTED.csv" 
+FILE_NAME = "dataset_NOISE_POLLUTED.csv" 
 
-TARGET_LABEL = "AIR_POLLUTED"    
+TARGET_LABEL = "NOISE_POLLUTED"    
 LEVEL = 0       
 
 
