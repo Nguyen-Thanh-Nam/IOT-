@@ -105,6 +105,10 @@ void loop() {
 
   // 2. GỬI ESP (1 giây/lần)
   static unsigned long lastSend = 0;
+    Serial.print(v135); Serial.print(",");
+    Serial.print(v7);   Serial.print(",");
+    Serial.print(vDust);Serial.print(",");
+    Serial.println(vSound);
   if (millis() - lastSend > 1000) {
     espSerial.print(v135); espSerial.print(",");
     espSerial.print(v7);   espSerial.print(",");
@@ -135,11 +139,39 @@ void loop() {
 
   static unsigned long lastLCD = 0;
   if (millis() - lastLCD > 500) { 
-    lcd.setCursor(0, 0);
-    if (currentAlert == 0) lcd.print("   FRESH AIR    ");
-    else if (currentAlert == 1) lcd.print(" AIR POLLUTION  ");
-    else if (currentAlert == 2) lcd.print(" NOISE POLLUTION");
-    else lcd.print("   DANGER !!!   ");
+    lcd.setCursor(0, 0); // Luôn đưa con trỏ về đầu dòng 1 trước
+
+    if (currentAlert == 0) {
+      lcd.print("   FRESH AIR    ");
+      // --- THÊM ĐOẠN NÀY ĐỂ XÓA DÒNG 2 ---
+      lcd.setCursor(0, 1); 
+      lcd.print("                "); // In 16 khoảng trắng để xóa sạch dòng dưới
+    }
+    else if (currentAlert == 1) {
+      lcd.print(" AIR POLLUTION  ");
+      // --- XÓA DÒNG 2 ---
+      lcd.setCursor(0, 1); 
+      lcd.print("                ");
+    }
+    else if (currentAlert == 2) {
+      lcd.print(" NOISE POLLUTION");
+      // --- XÓA DÒNG 2 ---
+      lcd.setCursor(0, 1); 
+      lcd.print("                ");
+    }
+    else if (currentAlert == 3){ 
+      // Trường hợp này ghi cả 2 dòng nên không cần xóa
+      lcd.print("AIR & NOISE     ");
+      lcd.setCursor(0, 1);          
+      lcd.print("   POLLUTION    "); 
+    }
+    else {
+      // Trường hợp lỗi cũng phải xóa dòng 2
+      lcd.print("   FRESH AIR    ");
+      lcd.setCursor(0, 1); 
+      lcd.print("                ");
+    }
+    
     lastLCD = millis();
-  }
+}
 }

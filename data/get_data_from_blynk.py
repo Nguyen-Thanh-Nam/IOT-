@@ -7,13 +7,13 @@ from datetime import datetime
 BLYNK_TOKEN = "-JtyN9CYCudclKkkfClXNl-i3hQNEGpA"
 BLYNK_URL = f"https://blynk.cloud/external/api/getAll?token={BLYNK_TOKEN}"
 
-FILE_NAME = "dataset_SAFE.csv" 
+FILE_NAME = "dataset_AIR_POLLUTED.csv" 
 
-TARGET_LABEL = "SAFE"    
+TARGET_LABEL = "AIR_POLLUTED"    
 LEVEL = 0       
 
 
-INTERVAL = 2
+INTERVAL = 0.5
 
 def fetch_and_save():
 
@@ -23,7 +23,7 @@ def fetch_and_save():
         writer = csv.writer(f)
         
         if not file_exists:
-            writer.writerow(['MQ135', 'MQ7', 'PM25', 'Sound', 'Scenario', 'Alert_Level', 'DateTime'])
+            writer.writerow(['MQ135_AirQuality', 'MQ7_CO_ppm', 'PM25_ugm3', 'Sound_dB', 'Scenario', 'Alert_Level', 'DateTime'])
             print(f"--- Đã tạo file mới: {FILE_NAME} ---")
             print(f"--- Đang thu thập dữ liệu nhãn '{TARGET_LABEL}' ---")
 

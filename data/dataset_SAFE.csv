@@ -1,5 +1,4 @@
-MQ135,MQ7,PM25,Sound,Scenario,Alert_Level,DateTime
-
+MQ135_AirQuality,MQ7_CO_ppm,PM25_ugm3,Sound_dB,Scenario,Alert_Level,DateTime
 0.06,3.0,0.0,38.0,SAFE,0,2026-01-03 23:24:10
 0.04,2.66,0.0,38.0,SAFE,0,2026-01-03 23:24:13
 0.05,2.56,0.0,38.0,SAFE,0,2026-01-03 23:24:15

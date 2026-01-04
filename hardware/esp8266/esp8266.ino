@@ -6,12 +6,12 @@
 #include <ESP8266HTTPClient.h>
 #include <BlynkSimpleEsp8266.h>
 
-char ssid[] = "Home"; 
-char pass[] = "02020202"; 
+char ssid[] = "Heyman Phòng Lạnh"; 
+char pass[] = "xincamon"; 
 char auth[] = BLYNK_AUTH_TOKEN;
 
 // --- QUAN TRỌNG: SỬA IP NÀY THÀNH IP MÁY TÍNH CỦA BẠN ---
-const char* SERVER_URL = "http://192.168.1.9:5000/api/predict";
+const char* SERVER_URL = "http://192.168.1.25:5000/api/predict";
 
 WiFiClient client;
 HTTPClient http;
