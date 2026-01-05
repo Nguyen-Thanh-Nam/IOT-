@@ -3,8 +3,8 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # --- CẤU HÌNH ---
-NUM_SAMPLES = 100  # Số lượng dòng muốn tạo
-FILENAME = 'dataset_NOISE_POLLUTED.csv'
+NUM_SAMPLES = 2000  # Số lượng dòng muốn tạo
+FILENAME = '../dataset_NOISE_POLLUTED.csv'
 
 print(f"Dang tao {NUM_SAMPLES} dong du lieu NOISE POLLUTION...")
 

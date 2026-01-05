@@ -141,7 +141,6 @@ def index():
 def get_latest():
     return jsonify(latest_data_store)
 
-# Route này dành cho ESP8266 gửi trực tiếp (Nếu ESP dùng HTTP Client)
 @app.route('/api/predict', methods=['POST'])
 def predict_endpoint():
     try:

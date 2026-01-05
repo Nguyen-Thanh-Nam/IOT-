@@ -3,7 +3,6 @@
 #include <LiquidCrystal.h>
 #include <GP2YDustSensor.h>
 
-// --- CẤU HÌNH ---
 #define LED_BLUE_PIN   3  
 #define LED_YELLOW_PIN 4  
 #define LED_RED_PIN    5  
@@ -56,7 +55,6 @@ float getSound() {
   return map(avg, 0, 800, 35, 90); 
 }
 
-// --- [TỐI ƯU] HÀM LOA KHÔNG DELAY ---
 void controlBuzzer(int level) {
   static unsigned long lastChange = 0;
   static bool state = false;
@@ -70,24 +68,21 @@ void controlBuzzer(int level) {
     return;
   }
   else if (level == 1 || level == 2) {
-    // Kêu 200ms, nghỉ 500ms
     onDuration = 200;
     offDuration = 500;
   }
   else if (level == 3) {
-    // Kêu 100ms, nghỉ 100ms (Gấp)
     onDuration = 100;
     offDuration = 100;
   }
 
-  // Logic chớp tắt dựa trên millis
-  if (state) { // Đang kêu
+  if (state) { 
     if (now - lastChange >= onDuration) {
       digitalWrite(BUZZER_PIN, LOW);
       state = false;
       lastChange = now;
     }
-  } else { // Đang nghỉ
+  } else {
     if (now - lastChange >= offDuration) {
       digitalWrite(BUZZER_PIN, HIGH);
       state = true;
@@ -97,13 +92,13 @@ void controlBuzzer(int level) {
 }
 
 void loop() {
-  // 1. ĐỌC CẢM BIẾN
+
   MQ135.update(); float v135 = MQ135.readSensor();
   MQ7.update();   float v7 = MQ7.readSensor();
   float vDust = getDust();
   float vSound = getSound();
 
-  // 2. GỬI ESP (1 giây/lần)
+
   static unsigned long lastSend = 0;
     Serial.print(v135); Serial.print(",");
     Serial.print(v7);   Serial.print(",");
@@ -117,17 +112,17 @@ void loop() {
     lastSend = millis();
   }
 
-  // 3. NHẬN LỆNH TỪ ESP (Dùng while để đọc sạch bộ đệm)
   while (espSerial.available()) {
     String resp = espSerial.readStringUntil('\n');
     resp.trim();
+    Serial.println(resp);
     if (resp.startsWith("ALERT:")) {
       currentAlert = resp.substring(6).toInt();
     }
   }
 
-  // 4. XỬ LÝ OUTPPUT (Loa & LED & LCD)
-  controlBuzzer(currentAlert); // Hàm này giờ không còn delay nữa -> Chạy mượt
+
+  controlBuzzer(currentAlert);
 
   if (currentAlert == 0) {
     digitalWrite(LED_BLUE_PIN, HIGH); digitalWrite(LED_YELLOW_PIN, LOW); digitalWrite(LED_RED_PIN, LOW);
@@ -138,40 +133,58 @@ void loop() {
   }
 
   static unsigned long lastLCD = 0;
-  if (millis() - lastLCD > 500) { 
-    lcd.setCursor(0, 0); // Luôn đưa con trỏ về đầu dòng 1 trước
-
+ if (millis() - lastLCD > 500) { 
+    lcd.setCursor(0, 0);
+    
     if (currentAlert == 0) {
       lcd.print("   FRESH AIR    ");
-      // --- THÊM ĐOẠN NÀY ĐỂ XÓA DÒNG 2 ---
-      lcd.setCursor(0, 1); 
-      lcd.print("                "); // In 16 khoảng trắng để xóa sạch dòng dưới
+      lcd.setCursor(0, 1);
+
+      lcd.print("P:"); 
+      lcd.print((int)vDust); 
+      lcd.print("ug ");     
+      lcd.print("dB:"); 
+      lcd.print((int)vSound);
+      lcd.print("  ");     
     }
+    
+
     else if (currentAlert == 1) {
-      lcd.print(" AIR POLLUTION  ");
-      // --- XÓA DÒNG 2 ---
+      lcd.print("AIR POLLUTION ");
       lcd.setCursor(0, 1); 
-      lcd.print("                ");
+  
+      lcd.print("P:"); 
+      lcd.print((int)vDust);
+      lcd.print(" C:"); 
+      lcd.print(v7, 1); 
+      lcd.print("      ");      
     }
+    
     else if (currentAlert == 2) {
-      lcd.print(" NOISE POLLUTION");
-      // --- XÓA DÒNG 2 ---
+      lcd.print("NOISE POLLUTION ");
       lcd.setCursor(0, 1); 
-      lcd.print("                ");
+      lcd.print("Level: "); 
+      lcd.print(vSound, 1); 
+      lcd.print(" dB   "); 
     }
+    
     else if (currentAlert == 3){ 
-      // Trường hợp này ghi cả 2 dòng nên không cần xóa
-      lcd.print("AIR & NOISE     ");
+      lcd.print("BOTH POLLUTED");
       lcd.setCursor(0, 1);          
-      lcd.print("   POLLUTION    "); 
+
+      lcd.print("P:"); 
+      lcd.print((int)vDust);
+      lcd.print("  dB:"); 
+      lcd.print((int)vSound);
+      lcd.print("   "); 
     }
+    
     else {
-      // Trường hợp lỗi cũng phải xóa dòng 2
-      lcd.print("   FRESH AIR    ");
+      lcd.print("   SYSTEM OK    ");
       lcd.setCursor(0, 1); 
-      lcd.print("                ");
+      lcd.print("Wait sensor...  ");
     }
     
     lastLCD = millis();
-}
+  }
 }

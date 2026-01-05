@@ -10,7 +10,7 @@ BLYNK_URL = f"https://blynk.cloud/external/api/getAll?token={BLYNK_TOKEN}"
 FILE_NAME = "dataset_NOISE_POLLUTED.csv" 
 
 TARGET_LABEL = "NOISE_POLLUTED"    
-LEVEL = 0       
+LEVEL = 2 
 
 
 INTERVAL = 0.5
@@ -39,10 +39,8 @@ def fetch_and_save():
                     pm25 = float(data.get('v2', 0))
                     sound = float(data.get('v3', 0))
                     
- 
                     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    
-
+                
                     writer.writerow([mq135, mq7, pm25, sound, TARGET_LABEL, LEVEL, now_str])
                     
                     print(f"[{now_str}] Đã lưu: Bụi={pm25} | Ồn={sound} -> Nhãn: {TARGET_LABEL}")

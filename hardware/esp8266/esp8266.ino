@@ -6,12 +6,11 @@
 #include <ESP8266HTTPClient.h>
 #include <BlynkSimpleEsp8266.h>
 
-char ssid[] = "Heyman Phòng Lạnh"; 
-char pass[] = "xincamon"; 
+char ssid[] = "PTIT.HCM_SV"; 
+char pass[] = ""; 
 char auth[] = BLYNK_AUTH_TOKEN;
 
-// --- QUAN TRỌNG: SỬA IP NÀY THÀNH IP MÁY TÍNH CỦA BẠN ---
-const char* SERVER_URL = "http://192.168.1.25:5000/api/predict";
+const char* SERVER_URL = "http://10.251.5.56:5000/api/predict";
 
 WiFiClient client;
 HTTPClient http;
@@ -36,15 +35,14 @@ void sendAlertToArduino(int alertLevel) {
 
 // Ham doc JSON thu cong de lay alert_level
 int parseAlertLevel(String jsonResponse) {
-  // Tim chuoi "alert_level":
+
   int keyIdx = jsonResponse.indexOf("\"alert_level\"");
   if (keyIdx < 0) return -1;
   
-  // Tim dau : sau do
   int valStart = jsonResponse.indexOf(":", keyIdx);
   if (valStart < 0) return -1;
   
-  // Tim dau , hoac } de ket thuc gia tri
+
   int valEnd = jsonResponse.indexOf(",", valStart);
   if (valEnd < 0) valEnd = jsonResponse.indexOf("}", valStart);
   if (valEnd < 0) return -1;
@@ -60,7 +58,7 @@ int getAlertFromAI(float mq135, float mq7, float pm25, float sound) {
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(500);
   
-  // Tao JSON String thu cong
+  //
   String jsonData = "{";
   jsonData += "\"mq135\":" + String(mq135) + ",";
   jsonData += "\"mq7\":" + String(mq7) + ",";
@@ -86,7 +84,6 @@ void loop() {
     String data = Serial.readStringUntil('\n');
     data.trim();
     
-    // Format du lieu tu Arduino: mq135,mq7,pm25,sound
     int c1 = data.indexOf(',');
     int c2 = data.indexOf(',', c1 + 1);
     int c3 = data.indexOf(',', c2 + 1);
@@ -103,12 +100,12 @@ void loop() {
       Blynk.virtualWrite(V2, pm25);
       Blynk.virtualWrite(V3, sound);
       
-      // Goi AI Moi giay 1 lan
+      //
       if (millis() - lastPredictTime >= PREDICT_INTERVAL) {
         int alert = getAlertFromAI(mq135, mq7, pm25, sound);
         if (alert >= 0) {
           sendAlertToArduino(alert);
-          Blynk.virtualWrite(V4, alert); // (Optional) Hien thi muc do len Blynk
+          Blynk.virtualWrite(V4, alert); //Hien thi muc do len Blynk
 
           if (alert >= 3) { 
                 Blynk.logEvent("canh_bao", "CẢNH BÁO: Môi trường đang ô nhiễm nguy hiểm!");
